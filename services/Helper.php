@@ -33,13 +33,52 @@ class Helper extends Service
     protected $_app_name;
 
     protected $_param;
-
+    
+    /**
+     * Returns a string representing the current version of the Yii framework.
+     * @return string the version of Yii framework
+     */
+    public  function getVersion()
+    {
+        return '2.10.0';
+    }
+    
     /**
      * 得到当前的app入口的名字，譬如 appfront apphtml5  appserver等.
      */
     public function getAppName()
     {
         return   Yii::$app->params['appName'];
+    }
+    
+    public function getBaseWebsiteName()
+    {
+        $websiteName = Yii::$app->store->get('base_info', 'company_name');
+        if (!$websiteName) {
+            $websiteName = 'FECMALL.COM';
+        }
+        
+        return $websiteName;
+    }
+    
+    public function getBaseWebsitePerson()
+    {
+        $websitePerson = Yii::$app->store->get('base_info', 'company_person');
+        if (!$websitePerson) {
+            $websitePerson = 'FECMALL.COM';
+        }
+        
+        return $websitePerson;
+    }
+    
+    public function getBaseWebsitePhone()
+    {
+        $websitePhone = Yii::$app->store->get('base_info', 'company_phone');
+        if (!$websitePhone) {
+            $websitePhone = 'FECMALL.COM';
+        }
+        
+        return $websitePhone;
     }
 
     /**
@@ -77,6 +116,7 @@ class Helper extends Service
     public function setAppServiceDomain($domain)
     {
         $this->_param['appServiceDomain'] = $domain;
+        
         return true;
     }
     
@@ -93,8 +133,10 @@ class Helper extends Service
     public function isApiApp()
     {
         if (\Yii::$service->store->isApiStore() == true) {
+            
             return true;
         } else {
+            
             return false;
         }
     }
@@ -111,9 +153,9 @@ class Helper extends Service
         for ( $i = 0; $i < $length; $i++ )  {
             $str.= substr($chars, mt_rand(0, strlen($chars)-1), 1);
         }
+        
         return $str;
     }
-    
     // 递归删除文件夹以及里面的所有的子文件夹和子文件
     public function deleteDir($path) {
         if (is_dir($path)) {
@@ -141,7 +183,6 @@ class Helper extends Service
         return true;
     }
     
-    
      /**
      * 图片文件复制，注意，如果某个文件不是图片类型，则不会被复制（仅仅复制图片）
      * 文件夹图片文件拷贝, 如果文件存在，则会被强制覆盖。
@@ -152,17 +193,13 @@ class Helper extends Service
      */
     public function copyDirImage($sourcePath, $targetPath, $isForce = true)
     {
-        if (empty($sourcePath) || empty($targetPath))
-        {
+        if (empty($sourcePath) || empty($targetPath)) {
             return false;
         }
-     
         $dir = opendir($sourcePath);
         $this->dir_mkdir($targetPath);
-        while (false !== ($file = readdir($dir)))
-        {
-            if (($file != '.') && ($file != '..'))
-            {
+        while (false !== ($file = readdir($dir))) {
+            if (($file != '.') && ($file != '..')) {
                 $sourcePathFile = $sourcePath . '/' . $file;
                 $targetPathFile = $targetPath . '/' . $file;
                 if (is_dir($sourcePathFile)){
@@ -175,7 +212,6 @@ class Helper extends Service
                     } else {
                         Yii::$service->helper->errors->add('target path:' . $targetPathFile . ' is exist.');
                     }
-                    
                 } else {
                     Yii::$service->helper->errors->add('file is not image:' . $sourcePathFile);
                 }
@@ -186,7 +222,7 @@ class Helper extends Service
         return true;
     }
     
-     /**
+    /**
      * 文件夹文件拷贝
      *
      * @param string $sourcePath 来源文件夹
@@ -227,7 +263,6 @@ class Helper extends Service
         return true;
     }
     
-     
     /**
      * 创建文件夹
      *
@@ -242,13 +277,12 @@ class Helper extends Service
         if (!is_dir($path))
         {
             mkdir($path, $mode, $recursive);
+            
             return chmod($path, $mode);
         }
      
         return true;
     }
-    
-    
     
     public function scanAllDirSubFile($dir, $subDir='/')
     {	
@@ -267,8 +301,10 @@ class Helper extends Service
                     }
                 }
             }
+            
             return $files;
         }else{
+            
             return $subDir.$dir;
         }
     }

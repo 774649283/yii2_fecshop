@@ -65,12 +65,11 @@ class Asset extends Service
         $css_version = Yii::$app->store->get($appName.'_base', 'css_version');
         $this->jsVersion = $js_version;  
         $this->cssVersion = $css_version; 
-
     }
     /**
      * 文件路径默认放到模板路径下面的assets里面.
      */
-    protected function actionRegister($view)
+    public function register($view)
     {
         if ($this->basePath) {
             $view->assetManager->basePath = Yii::getAlias($this->basePath);
@@ -80,7 +79,24 @@ class Asset extends Service
         }
         $view->assetManager->forceCopy = $this->forceCopy;
         $assetArr = [];
+        // 模板路径优先级（由高到底）
         $themeDir = Yii::$service->page->theme->getThemeDirArr();
+        // 根据模板路径的优先级，初始化asset数组顺序，进而决定css的优先级
+        $assetThemeDirs = array_reverse($themeDir);
+        // pushArr数组
+        $publishArr = [];
+        foreach ($assetThemeDirs as $assetThemeDir) {
+            $dir2 = $assetThemeDir.'/'.$this->defaultDir.'/';
+            $assetArr[$dir2] = [];
+            if(is_dir($dir2)) {
+                $publishDir = $view->assetManager->publish($dir2);
+                $publishArr[$dir2] = $publishDir;
+            }
+            
+        }
+        $jsV = '?v='.$this->jsVersion;
+        $cssV = '?v='.$this->cssVersion;
+        // 根据模板的优先级，查找js和css文件
         if (is_array($themeDir) && !empty($themeDir)) {
             if (is_array($this->jsOptions) && !empty($this->jsOptions)) {
                 foreach ($this->jsOptions as $jsOption) {
@@ -90,10 +106,10 @@ class Asset extends Service
                                 $dir = $dir.'/'.$this->defaultDir.'/';
                                 $jsAbsoluteDir = $dir.$jsPath;
                                 if (file_exists($jsAbsoluteDir)) {
-                                    $assetArr[$dir]['jsOptions'][] = [
-                                        'js'        =>  $jsPath,
-                                        'options'    =>  isset($jsOption['options']) ? $this->initOptions($jsOption['options']) : null,
-                                    ];
+                                    $publishDir = $publishArr[$dir];
+                                    $cOptions = isset($jsOption['options']) ? $this->initOptions($jsOption['options']) : null ;
+                                    $view->registerJsFile($publishDir[1].'/'.$jsPath.$jsV, $cOptions);
+                                    
                                     break;
                                 }
                             }
@@ -101,7 +117,6 @@ class Asset extends Service
                     }
                 }
             }
-
             if (is_array($this->cssOptions) && !empty($this->cssOptions)) {
                 foreach ($this->cssOptions as $cssOption) {
                     if (isset($cssOption['css']) && is_array($cssOption['css']) && !empty($cssOption['css'])) {
@@ -110,10 +125,10 @@ class Asset extends Service
                                 $dir = $dir.'/'.$this->defaultDir.'/';
                                 $cssAbsoluteDir = $dir.$cssPath;
                                 if (file_exists($cssAbsoluteDir)) {
-                                    $assetArr[$dir]['cssOptions'][] = [
-                                        'css'        =>  $cssPath,
-                                        'options'    =>  isset($cssOption['options']) ? $this->initOptions($cssOption['options']) : null,
-                                    ];
+                                    $publishDir = $publishArr[$dir];
+                                    $cOptions = isset($cssOption['options']) ? $this->initOptions($cssOption['options']) : null;
+                                    $view->registerCssFile($publishDir[1].'/'.$cssPath.$cssV, $cOptions);
+                                    
                                     break;
                                 }
                             }
@@ -122,27 +137,7 @@ class Asset extends Service
                 }
             }
         }
-        if (!empty($assetArr)) {
-            $jsV = '?v='.$this->jsVersion;
-            $cssV = '?v='.$this->cssVersion;
-            foreach ($assetArr as $fileDir=>$as) {
-                $cssConfig = $as['cssOptions'];
-                $jsConfig = $as['jsOptions'];
-                $publishDir = $view->assetManager->publish($fileDir);
-                if (!empty($jsConfig) && is_array($jsConfig)) {
-                    foreach ($jsConfig as $c) {
-                        //$view->registerJsFile($this->jsCssDomain.$publishDir[1].'/'.$c['js'].$jsV, $c['options']);
-                        $view->registerJsFile($publishDir[1].'/'.$c['js'].$jsV, $c['options']);
-                    }
-                }
-                if (!empty($cssConfig) && is_array($cssConfig)) {
-                    foreach ($cssConfig as $c) {
-                        //$view->registerCssFile($this->jsCssDomain.$publishDir[1].'/'.$c['css'].$cssV, $c['options']);
-                        $view->registerCssFile($publishDir[1].'/'.$c['css'].$cssV, $c['options']);
-                    }
-                }
-            }
-        }
+        
     }
 
     protected function initOptions($options)

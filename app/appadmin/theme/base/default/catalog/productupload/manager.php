@@ -17,8 +17,8 @@ use fec\helpers\CRequest;
 		<div class="pageFormContent" layoutH="56">
 			<?=  CRequest::getCsrfInputHtml();  ?>
             <fieldset id="fieldset_table_qbe">
-					<legend style="color:#cc0000">产品文件上传</legend>
-                    <div >
+					<legend style="color:#888">产品文件上传</legend>
+                    <div  style="padding:10px;">
                         <input name="file" type="file"  style="float:left"/>
                         <br><br><br>
                         <div style="line-height:30px;">
@@ -44,6 +44,10 @@ use fec\helpers\CRequest;
                             3.选择文件，提交即可
                             
                         
+                        </div>
+                        <div style="line-height:30px;">    
+                            
+                            4.更详细的关于产品上传，参看文档: <a  style="color:blue" href="http://www.fecmall.com/doc/fecshop-guide/instructions/cn-2.0/guide-fecmall_category_product_mutil_upload.html">Fecmall分类产品Excel表格批量上传文档</a>
                         </div>
                         
                     </div>

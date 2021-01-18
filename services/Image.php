@@ -25,12 +25,10 @@ class Image extends Service
      * absolute image save floder.
      */
     public $imageFloder = 'media/upload';
-
     /**
      * upload image max size (MB).
      */
     public $maxUploadMSize = 2;
-
     /**
      * allow image type.
      */
@@ -41,10 +39,7 @@ class Image extends Service
         'image/jpg',
         'image/pjpeg',
     ];
-
     protected $_maxUploadSize;
-
-    // public $appbase;
     public $commonBaseDir;
     public $commonBaseDomain;
     
@@ -60,7 +55,6 @@ class Image extends Service
         if (!in_array($imgType, $this->allowImgType)) {
             
             return false;
-        
         }
         // 文件后缀检查
         $fileNameArr = explode('.', $fileName);
@@ -77,9 +71,9 @@ class Image extends Service
     {
         $arr = [];
         if (!is_array($this->allowImgType) || empty($this->allowImgType)) {
+            
             return [];
         }
-        
         foreach ($this->allowImgType as $one) {
             $oneArr = explode('/',$one);
             $arr[] = $oneArr[1];
@@ -94,15 +88,38 @@ class Image extends Service
         
         $this->commonBaseDomain = Yii::$app->store->get('base_info', 'image_domain');
     }
+    /**
+     * 得到logo的url
+     */
+    public function getLogoImgUrl()
+    {
+        $logoImg = Yii::$app->store->get('base_info', 'logo_image');
+        if ($logoImg) {
+            
+            return $this->getUrlByRelativePath($logoImg);
+        }
+        
+        return Yii::$service->image->getImgUrl('appfront/custom/logo.png');
+    }
+    
+    /**
+     * 得到logo的url
+     */
+    public function getFecmallLogoImgUrl()
+    {
+        
+        return Yii::$service->image->getImgUrl('appfront/custom/logo.png');
+    }
 
     /**
      * @param $str | String 图片的相对路径
      * @param $app | String @appimage下面的文件夹的名称。各个名称对应各个入口的名字，譬如common appfront appadmin等
      * @return 返回图片的绝对路径。
      */
-    protected function actionGetImgDir($str = '')  // , $app = 'common' 第二个参数废弃
+    public function getImgDir($str = '')  // , $app = 'common' 第二个参数废弃
     {
         if ($str) {
+            
             return Yii::getAlias($this->commonBaseDir) . '/'.$str;
         }
 
@@ -114,9 +131,10 @@ class Image extends Service
      * @param $app | String @appimage下面的文件夹的名称。各个名称对应各个入口的名字，譬如common appfront appadmin等
      * @return 返回图片的完整URL
      */ 
-    protected function actionGetImgUrl($str)   // , $app = 'common' 第二个参数废弃
+    public function getImgUrl($str)   // , $app = 'common' 第二个参数废弃
     {
         if ($str) {
+            
             return $this->commonBaseDomain.'/'.$str;
         }
 
@@ -127,7 +145,7 @@ class Image extends Service
      * @param $app | String @appimage下面的文件夹的名称。各个名称对应各个入口的名字，譬如common appfront appadmin等
      * @return 返回图片存放目录的绝对路径。
      */
-    protected function actionGetBaseImgDir($app = 'common')
+    public function getBaseImgDir($app = 'common')
     {
         return $this->getImgDir('', $app);
     }
@@ -136,7 +154,7 @@ class Image extends Service
      * @param $app | String @appimage下面的文件夹的名称。各个名称对应各个入口的名字，譬如common appfront appadmin等
      * @return 返回图片存放目录的URL
      */
-    protected function actionGetBaseImgUrl($app = 'common')
+    public function getBaseImgUrl($app = 'common')
     {
         return $this->getImgUrl('', $app);
     }
@@ -145,7 +163,7 @@ class Image extends Service
      * @param $uploadSize | Int , 多少MB
      * 设置上传图片的最大的size. 参数单位为MB
      */
-    protected function actionSetMaxUploadSize($uploadSize)
+    public function setMaxUploadSize($uploadSize)
     {
         $this->_maxUploadSize = $uploadSize * 1024 * 1024;
     }
@@ -153,7 +171,7 @@ class Image extends Service
     /**
      * 得到上传图片的最大的size.
      */
-    protected function actionGetMaxUploadSize()
+    public function getMaxUploadSize()
     {
         if (!$this->_maxUploadSize) {
             if ($this->maxUploadMSize) {
@@ -167,7 +185,7 @@ class Image extends Service
     /**
      * 得到（上传）保存图片所在相对根目录的url路径.
      */
-    protected function actionGetCurrentBaseImgUrl()
+    public function getCurrentBaseImgUrl()
     {
         return $this->GetImgUrl($this->imageFloder, 'common');
     }
@@ -175,7 +193,7 @@ class Image extends Service
     /**
      * 得到（上传）保存图片所在相对根目录的文件夹路径.
      */
-    protected function actionGetCurrentBaseImgDir()
+    public function getCurrentBaseImgDir()
     {
         return $this->GetImgDir($this->imageFloder, 'common');
     }
@@ -184,7 +202,7 @@ class Image extends Service
      * @param $str | String , 图片的相对路径字符串
      * 通过图片的相对路径得到产品图片的url.
      */
-    protected function actionGetUrlByRelativePath($str)
+    public function getUrlByRelativePath($str)
     {
         return $this->GetImgUrl($this->imageFloder.$str, 'common');
     }
@@ -193,7 +211,7 @@ class Image extends Service
      * @param $str | String , 图片的相对路径字符串
      * 通过图片的相对路径得到产品图片的绝对路径.
      */
-    protected function actionGetDirByRelativePath($str)
+    public function getDirByRelativePath($str)
     {
         return $this->GetImgDir($this->imageFloder.$str, 'common');
     }
@@ -219,6 +237,7 @@ class Image extends Service
             $str .= $chars[ mt_rand(0, strlen($chars) - 1) ];
         }
         $str .= time();
+        
         return $str.$fileType;
     }
     
@@ -228,7 +247,7 @@ class Image extends Service
      * 如果成功，保存产品相对路径，譬如： '/b/i/big.jpg'
      * 如果失败，reutrn false;
      */
-    protected function actionSaveUploadImg($FILE)
+    public function saveUploadImg($FILE)
     {
         $size = $FILE['size'];
         $file = $FILE['tmp_name'];
@@ -237,7 +256,6 @@ class Image extends Service
         if (!$newName) {
             throw new InvalidValueException('generate img name fail');
         }
-        
         if ($size > $this->getMaxUploadSize()) {
             throw new InvalidValueException('upload image is to max than'. $this->getMaxUploadSize().' MB');
         } elseif (!($img = getimagesize($file))) {
@@ -257,6 +275,7 @@ class Image extends Service
 
             return [$imgSavedRelativePath, $imgUrl, $imgPath];
         } else {
+            
             return false;
         }
     }
@@ -277,7 +296,6 @@ class Image extends Service
         }
         $first_str = substr($imgName, 0, 1);
         $two_str = substr($imgName, 1, 2);
-
         $imgSaveFloder = CDir::createFloder($this->GetCurrentBaseImgDir(), [$first_str, $two_str]);
         if ($imgSaveFloder) {
             $imgName = $this->getUniqueImgNameInPath($imgSaveFloder, $imgName, $imgType);
@@ -300,6 +318,7 @@ class Image extends Service
     {
         $imagePath = $imgSaveFloder.'/'.$name.$randStr.'.'.$imageType;
         if (!file_exists($imagePath)) {
+            
             return $name.$randStr.'.'.$imageType;
         } else {
             $randStr = time().rand(10000, 99999);

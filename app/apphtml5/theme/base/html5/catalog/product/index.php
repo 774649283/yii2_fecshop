@@ -172,7 +172,7 @@
 	<?php $this->beginBlock('add_to_cart') ?>
 	$(document).ready(function(){
 		productAjaxUrl = "<?= Yii::$service->url->getUrl('customer/ajax/product');  ?>";
-		product_id   = "<?=  $_id ?>";
+		product_id   = $(".product_view_id").val();
 		$.ajax({
 			async:true,
 			timeout: 6000,
@@ -230,7 +230,7 @@
 				addToCartUrl = "<?= Yii::$service->url->getUrl('checkout/cart/add'); ?>";
 				$data = {};
 				$data['custom_option'] 	= custom_option_json;
-				$data['product_id'] 	= "<?= $_id ?>";
+				$data['product_id'] 	= $(".product_view_id").val();
 				$data['qty'] 			= qty;
 				if (csrfName && csrfVal) {
 					$data[csrfName] 		= csrfVal;
@@ -265,7 +265,7 @@
 			}else{
 				$(this).addClass('act');
 				url = $(this).attr('url');
-				product_id = $(this).attr('product_id');
+				product_id = $(".product_view_id").val();
 				csrfName = $(".product_csrf").attr("name");
 				csrfVal  = $(".product_csrf").val();
 				param = {};
@@ -287,27 +287,10 @@
 			});
 			if(i){
 				getCOUrl = "<?= Yii::$service->url->getUrl('catalog/product/getcoprice'); ?>";
-				product_id = "<?=  $_id ?>";		
+				product_id = $(".product_view_id").val();		
 				qty = $(".qty").val();
-				custom_option_sku = '';
-				for(x in custom_option_arr){
-					one = custom_option_arr[x];	
-					j = 1;
-					$(".product_custom_options .pg .rg ul.required").each(function(){
-						val = $(this).find("li.current a.current").attr("value");
-						attr  = $(this).find("li.current a.current").attr("attr");
-						if(one[attr] != val){
-							j = 0;
-							//break;
-						}
-					});
-					if(j){
-						custom_option_sku = one['sku'];
-						break;
-					}
-				}
+				
 				$data = {
-					custom_option_sku:custom_option_sku,
 					qty:qty,
 					product_id:product_id
 				};
@@ -331,6 +314,6 @@
 	<?php $this->endBlock(); ?> 
 	<?php $this->registerJs($this->blocks['add_to_cart'],\yii\web\View::POS_END);//将编写的js代码注册到页面底部 ?>
 </script> 
-<?= Yii::$service->page->trace->getTraceProductJsCode($sku)  ?>
+<?= Yii::$service->page->trace->getTraceProductJsCode($sku, $spu)  ?>
   
  

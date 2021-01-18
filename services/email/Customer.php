@@ -180,6 +180,7 @@ class Customer extends Service
     {
         $forgotPasswordInfo = $this->emailTheme['forgotPassword'];
         if (isset($forgotPasswordInfo['passwordResetTokenExpire']) && $forgotPasswordInfo['passwordResetTokenExpire']) {
+            
             return $forgotPasswordInfo['passwordResetTokenExpire'];
         }
     }
@@ -227,8 +228,10 @@ class Customer extends Service
                     'htmlBody'    => $htmlBody,
                     'senderName'=> Yii::$service->store->currentStore,
                 ];
+                // 添加表记录。
+                Yii::$service->customer->contacts->addCustomerContacts($emailInfo);
                 Yii::$service->email->send($sendInfo, $mailerConfigParam);
-
+    
                 return true;
             }
         }

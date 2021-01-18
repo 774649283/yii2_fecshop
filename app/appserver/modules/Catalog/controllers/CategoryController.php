@@ -126,7 +126,6 @@ class CategoryController extends AppserverController
                 }
             }
         }
-        
     }
     
     public function actionIndex(){
@@ -255,6 +254,10 @@ class CategoryController extends AppserverController
     protected function getFilterCategory()
     {
         $arr = [];
+        if (!Yii::$service->category->isEnableFilterSubCategory()) {
+            
+            return $arr;
+        }
         $category_id = $this->_primaryVal;
         $parent_id = $this->_category['parent_id'];
         $filter_category = Yii::$service->category->getFilterCategory($category_id, $parent_id);
@@ -350,23 +353,8 @@ class CategoryController extends AppserverController
      */
     protected function getFilterAttr()
     {
-        if (!$this->_filter_attr) {
-            $appName = Yii::$service->helper->getAppName();
-            $filter_default = Yii::$app->store->get($appName.'_catalog','category_filter_attr');
-            $filter_default = explode(',',$filter_default);
-            //$filter_default = Yii::$app->controller->module->params['category_filter_attr'];
-            $current_fileter_select       = $this->_category['filter_product_attr_selected'];
-            $current_fileter_unselect     = $this->_category['filter_product_attr_unselected'];
-            $current_fileter_select_arr   = $this->getFilterArr($current_fileter_select);
-            $current_fileter_unselect_arr = $this->getFilterArr($current_fileter_unselect);
-            //var_dump($current_fileter_select_arr);
-            $filter_attrs                 = array_merge($filter_default, $current_fileter_select_arr);
-            $filter_attrs                 = array_diff($filter_attrs, $current_fileter_unselect_arr);
-            $filter_attrs                 = array_unique($filter_attrs);
-            $this->_filter_attr           = $filter_attrs;
-        }
-
-        return $this->_filter_attr;
+        
+        return Yii::$service->category->getFilterAttr($this->_category);
     }
     /**
      * 得到分类侧栏用于属性过滤的部分数据
@@ -378,9 +366,15 @@ class CategoryController extends AppserverController
         $chosenAttrArr = json_decode($chosenAttrs,true);
         if(!empty($chosenAttrArr)){
             foreach ($chosenAttrArr as $attr=>$val) {
+                $refine_attr_str = Yii::$service->category->getCustomCategoryFilterAttrItemLabel($attr, $val);
+                if (!$refine_attr_str) {
+                    $refine_attr_str = Yii::$service->page->translate->__($val);
+                }
+                $attrLabel = Yii::$service->category->getCustomCategoryFilterAttrLabel($attr);
                 $refineInfo[] = [
                     'attr' =>  $attr,
-                    'val'  =>  Yii::$service->page->translate->__($val),
+                    'val'  =>  $refine_attr_str,
+                    'attrLabel' => $attrLabel,
                 ];
             }
         }
@@ -388,13 +382,15 @@ class CategoryController extends AppserverController
         if($currenctPriceFilter){
             $refineInfo[] = [
                 'attr' =>  $this->_filterPrice,
+                'attrLabel' => $this->_filterPrice,
                 'val'  =>  $currenctPriceFilter,
             ];
         }
         
         if (!empty($refineInfo)) {
             $arr[] = [
-                'attr'   => 'clearAll',
+                'attr'   => 'clear All',
+                'attrLabel' =>'clear All',
                 'val'    => Yii::$service->page->translate->__('clear all'),
             ];
             $refineInfo = array_merge($arr, $refineInfo);
@@ -407,6 +403,11 @@ class CategoryController extends AppserverController
      */
     protected function getFilterInfo()
     {
+        $chosenAttrs = Yii::$app->request->get('filterAttrs');
+        
+        return Yii::$service->category->getFilterInfo($this->_category, $this->_where, $chosenAttrs);
+        /*
+        
         $filter_info  = [];
         $filter_attrs = $this->getFilterAttr();
         $chosenAttrs = Yii::$app->request->get('filterAttrs');
@@ -438,16 +439,21 @@ class CategoryController extends AppserverController
         }
 
         return $filter_info;
+        */
     }
     /**
      * 侧栏价格过滤部分
      */
     protected function getFilterPrice()
     {
-        $symbol = Yii::$service->page->currency->getCurrentSymbol();
         
-        $currenctPriceFilter = Yii::$app->request->get('filterPrice');
         $filter = [];
+        if (!Yii::$service->category->isEnableFilterPrice()) {
+            
+            return $filter;
+        }
+        $symbol = Yii::$service->page->currency->getCurrentSymbol();
+        $currenctPriceFilter = Yii::$app->request->get('filterPrice');
         //$priceInfo = Yii::$app->controller->module->params['category_query'];
         $appName = Yii::$service->helper->getAppName();
         $category_query_priceRange = Yii::$app->store->get($appName.'_catalog','category_query_priceRange');
@@ -494,26 +500,7 @@ class CategoryController extends AppserverController
 
         return $str;
     }
-    /**
-     * @param $str | String
-     * 字符串转换成数组。
-     */
-    protected function getFilterArr($str)
-    {
-        $arr = [];
-        if ($str) {
-            $str = str_replace('，', ',', $str);
-            $str_arr = explode(',', $str);
-            foreach ($str_arr as $a) {
-                $a = trim($a);
-                if ($a) {
-                    $arr[] = trim($a);
-                }
-            }
-        }
-
-        return $arr;
-    }
+    
     /**
      * 用于搜索条件的排序部分
      */
@@ -627,9 +614,9 @@ class CategoryController extends AppserverController
             'where'          => $this->_where,
             'select'      => $select,
         ];
-        
+        //var_dump($filter);
         $productList = Yii::$service->category->product->getFrontList($filter);
-        
+        // var_dump($productList );
         $i = 1;
         $product_return = [];
         $products = $productList['coll'];
@@ -643,10 +630,10 @@ class CategoryController extends AppserverController
                 $products[$k]['price'] = isset($priceInfo['price']) ? $priceInfo['price'] : '';
                 $products[$k]['special_price'] = isset($priceInfo['special_price']) ? $priceInfo['special_price'] : '';
                 if (isset($products[$k]['special_price']['value'])) {
-                    $products[$k]['special_price']['value'] = Yii::$service->helper->format->number_format($products[$k]['special_price']['value']);
+                    $products[$k]['special_price']['value'] = Yii::$service->helper->format->numberFormat($products[$k]['special_price']['value']);
                 }
                 if (isset($products[$k]['price']['value'])) {
-                    $products[$k]['price']['value'] = Yii::$service->helper->format->number_format($products[$k]['price']['value']);
+                    $products[$k]['price']['value'] = Yii::$service->helper->format->numberFormat($products[$k]['price']['value']);
                 }
                 if($i%2 === 0){
                     $arr = $products[$k];
@@ -751,7 +738,7 @@ class CategoryController extends AppserverController
             $where[$this->_filterPriceAttr]['$lte'] = (float) $l_price;
         }
         $where['category'] = $this->_primaryVal;
-        //var_dump($where);exit;
+        //var_dump($where);
         return $where;
     }
     /**

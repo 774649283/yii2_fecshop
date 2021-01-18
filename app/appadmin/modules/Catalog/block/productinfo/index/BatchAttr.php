@@ -18,7 +18,7 @@ use Yii;
  * @author Terry Zhao <2358269014@qq.com>
  * @since 1.0
  */
-class BatchAttr
+class BatchAttr extends \yii\base\BaseObject
 {
     protected $_currentAttrGroup;
     protected $_attrInfo;
@@ -175,7 +175,7 @@ class BatchAttr
                 'require' => 0,
             ],
             [
-                'label' => Yii::$service->page->translate->__('Weight (KG)'),
+                'label' => Yii::$service->page->translate->__('Weight (G)'),
                 'name'  => 'weight',
                 'display' => [
                     'type' => 'inputString',
@@ -191,6 +191,14 @@ class BatchAttr
                     'lang' => false,
                 ],
                 'require' => 0,
+            ],
+            [
+                'label' => Yii::$service->page->translate->__('Product Brand'),
+                'name'  => 'brand_id',
+                'display' => [
+                    'type' => 'select',
+                    'data' => Yii::$service->product->brand->getAllBrandIdAndNames(),
+                ],
             ],
             [
                 'label' => Yii::$service->page->translate->__('Status'),

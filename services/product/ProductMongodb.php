@@ -44,14 +44,17 @@ class ProductMongodb extends Service implements ProductInterface
     public function getEnableStatus()
     {
         $model = $this->_productModel;
+        
         return $model::STATUS_ENABLE;
     }
     
     public function getByPrimaryKey($primaryKey = null)
     {
         if ($primaryKey) {
+            
             return $this->_productModel->findOne($primaryKey);
         } else {
+            
             return new $this->_productModelName();
         }
     }
@@ -80,6 +83,7 @@ class ProductMongodb extends Service implements ProductInterface
             }
             $primaryKey = $this->getPrimaryKey();
             if (isset($product[$primaryKey]) && !empty($product[$primaryKey])) {
+                
                 return $product;
             }
         }
@@ -98,6 +102,7 @@ class ProductMongodb extends Service implements ProductInterface
                 $ids_ob_arr[] = new \MongoDB\BSON\ObjectId($id);
             }
             $filter = [
+                'select' => [$_id, 'sku'],
                 'where'            => [
                     ['in', $_id, $ids_ob_arr],
 
@@ -165,7 +170,6 @@ class ProductMongodb extends Service implements ProductInterface
     public function spuCollData($select, $spuAttrArr, $spu)
     {
         $select = array_merge($select, $spuAttrArr);
-        //var_dump($select);exit;
         $filter = [
             'select'    => $select,
             'where'            => [
@@ -279,7 +283,6 @@ class ProductMongodb extends Service implements ProductInterface
             foreach ($product_id_arr as $id) {
                 $mongoIds[] = new \MongoDB\BSON\ObjectId($id);
             }
-            //var_dump($mongoIds);
             $query->where(['in', $this->getPrimaryKey(), $mongoIds]);
             $query->andWhere(['category'=>$category_id]);
             $data = $query->all();
@@ -332,7 +335,6 @@ class ProductMongodb extends Service implements ProductInterface
                 $spuAttrArr[] = $groupSpuOne['name'];
             }
         }
-        
         if ($primaryVal) {
             $model = $this->_productModel->findOne($primaryVal);
             if (!$model) {
@@ -340,7 +342,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-
             //验证sku 是否重复
             $product_one = $this->_productModel->find()->asArray()->where([
                 '<>', $this->getPrimaryKey(), (new \MongoDB\BSON\ObjectId($primaryVal)),
@@ -352,7 +353,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-            
             // spu 下面的各个sku的spu属性不能相同
             if (!empty($spuAttrArr)) {
                 $product_mode = $this->_productModel->find()->asArray()->where([
@@ -361,10 +361,8 @@ class ProductMongodb extends Service implements ProductInterface
                     'spu' => $one['spu'],
                 ]);
                 foreach ($spuAttrArr as $sar) {
-                    //var_dump([$sar => $one[$sar]]);
                     $product_mode->andWhere([$sar => $one[$sar]]);
                 }
-                
                 $product_one = $product_mode->one();
                 if ($product_one['sku']) {
                     Yii::$service->helper->errors->add('product Spu of the same22,  Spu attributes cannot be the same');
@@ -387,7 +385,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-            
             if (!empty($spuAttrArr)) {
                 $product_mode = $this->_productModel->find()->asArray()->where([
                     'spu' => $one['spu'],
@@ -395,7 +392,6 @@ class ProductMongodb extends Service implements ProductInterface
                 foreach ($spuAttrArr as $sar) {
                     $product_mode->andWhere([$sar => $one[$sar]]);
                 }
-                
                 $product_one = $product_mode->one();
                 if ($product_one['sku']) {
                     Yii::$service->helper->errors->add('product Spu of the same,  Spu attributes cannot be the same');
@@ -403,9 +399,7 @@ class ProductMongodb extends Service implements ProductInterface
                     return false;
                 }
             }
-            
         }
-        
         $model->updated_at = time();
         // 计算出来产品的最终价格。
         $one['final_price'] = Yii::$service->product->price->getFinalPrice($one['price'], $one['special_price'], $one['special_from'], $one['special_to']);
@@ -413,21 +407,9 @@ class ProductMongodb extends Service implements ProductInterface
         unset($one['_id']);
         unset($one['custom_option']);
         /**
-         * 如果 $one['custom_option'] 不为空，则计算出来库存总数，填写到qty
-         */
-        //if (is_array($one['custom_option']) && !empty($one['custom_option'])) {
-        //    $custom_option_qty = 0;
-        //    foreach ($one['custom_option'] as $co_one) {
-        //        $custom_option_qty += $co_one['qty'];
-        //    }
-        //    $one['qty'] = $custom_option_qty;
-        //}
-        /**
          * 保存产品
          */
-        //var_dump($one);exit;
         $saveStatus = Yii::$service->helper->ar->save($model, $one);
-        
         // 自定义url部分
         if ($originUrlKey) {
             $originUrl = $originUrlKey.'?'.$this->getPrimaryKey() .'='. $primaryVal;
@@ -437,7 +419,6 @@ class ProductMongodb extends Service implements ProductInterface
             $model->url_key = $urlKey;
             $model->save();
         }
-        
         $product_id = $model->{$this->getPrimaryKey()};
         /**
          * 更新产品库存。
@@ -450,7 +431,6 @@ class ProductMongodb extends Service implements ProductInterface
 
         return $model;
     }
-    
     
     /**
      * @param $one|array , 产品数据数组
@@ -476,8 +456,6 @@ class ProductMongodb extends Service implements ProductInterface
             $primaryVal = new \MongoDB\BSON\ObjectId();
             $model->{$this->getPrimaryKey()} = $primaryVal;
         }
-        
-        
         // 保存mongodb表中的产品id到字段origin_mongo_id
         $origin_mysql_id = $one['id'];
         $model->origin_mysql_id = $origin_mysql_id;
@@ -490,34 +468,20 @@ class ProductMongodb extends Service implements ProductInterface
         /**
          * 如果 $one['custom_option'] 不为空，则计算出来库存总数，填写到qty
          */
-        //if (is_array($one['custom_option']) && !empty($one['custom_option'])) {
-        //    $custom_option_qty = 0;
-        //    foreach ($one['custom_option'] as $co_one) {
-        //        $custom_option_qty += $co_one['qty'];
-        //    }
-        //    $one['qty'] = $custom_option_qty;
-        //}
-        
         /**
          * 保存产品
          */
-        //$one = $this->serializeSaveData($one);
         // 得到对应的mongodb的分类id数组
-        //var_dump($one['category']);
         if ($c = $this->syncGetProductCategorys($one['category'])){
             //var_dump($c);
             $one['category'] = $c;
         }
-        
         $one['price'] = (float) $one['price'];
         $one['cost_price'] = (float) $one['cost_price'];
         $one['special_price'] = (float) $one['special_price'];
         $one['final_price'] = (float) $one['final_price'];
-        
         $saveStatus = Yii::$service->helper->ar->save($model, $one);
         $product_id = (string)$model->{$this->getPrimaryKey()};
-        
-        
         // 自定义url部分
         $originUrlKey = 'catalog/product/index';
         $originUrl = $originUrlKey.'?'.$this->getPrimaryKey() .'='. $product_id;
@@ -546,6 +510,7 @@ class ProductMongodb extends Service implements ProductInterface
     protected function syncGetProductCategorys($mysqlCategorys)
     {
         if (empty($mysqlCategorys) || !is_array($mysqlCategorys)) {
+            
             return null;
         }
         
@@ -564,6 +529,7 @@ class ProductMongodb extends Service implements ProductInterface
                 $cIds[] = (string)$one['_id'];
             }
         }
+        
         return $cIds;
     }
     
@@ -580,6 +546,48 @@ class ProductMongodb extends Service implements ProductInterface
 
         return [];
     }
+    
+    /**
+     * @param $product_ids | array, 产品id数组
+     * 通过产品id数组，得到分类id数组。
+     */
+    public function getCategoryIdsByProductIds($product_ids)
+    {
+        $coll = $this->_productModel->find()->asArray()
+            ->where([
+                'in', '_id', $product_ids
+            ])->all();
+        $categoryIds = [];
+        foreach ($coll as $one) {
+            if (isset($one['category']) && !empty($one['category']) && is_array($one['category'])) {
+                $categoryIds = array_merge($categoryIds, $one['category']);
+            }
+        }
+        
+        return array_unique($categoryIds);
+    }
+    
+    /**
+     * @param $product_ids | array, 产品id数组
+     * 通过产品id数组，得到产品对应的分类id数组
+     */
+    public function getCategorysByProductIds($product_ids)
+    {
+        $coll = $this->_productModel->find()->asArray()
+            ->where([
+                'in', '_id', $product_ids
+            ])->all();
+        $categoryIds = [];
+        foreach ($coll as $one) {
+            $productId = (string)$one['_id'];
+            if (isset($one['category']) && !empty($one['category']) && is_array($one['category'])) {
+                $categoryIds[$productId] = $one['category'];
+            }
+        }
+        
+        return $categoryIds;
+    }
+    
     /**
      * @param $one|array
      * 对保存的数据进行数据验证
@@ -624,15 +632,7 @@ class ProductMongodb extends Service implements ProductInterface
 
             return false;
         }
-        //if (is_array($one['custom_option']) && !empty($one['custom_option'])) {
-        //    $new_custom_option = [];
-        //    foreach ($one['custom_option'] as $k=>$v) {
-        //        $k = preg_replace('/[^A-Za-z0-9\-_]/', '', $k);
-        //        $new_custom_option[$k] = $v;
-        //    }
-        //    $one['custom_option'] = $new_custom_option;
-        //}
-
+        
         return true;
     }
 
@@ -667,6 +667,7 @@ class ProductMongodb extends Service implements ProductInterface
                 }
             }
             if (!$removeAll) {
+                
                 return false;
             }
         } else {
@@ -701,37 +702,37 @@ class ProductMongodb extends Service implements ProductInterface
     {
         // 在 addCategoryIdArr 查看哪些产品，分类id在product中已经存在，
         $idKey = $this->getPrimaryKey();
-        //var_dump($addCateProductIdArr);
         if (is_array($addCateProductIdArr) && !empty($addCateProductIdArr) && $category_id) {
             $addCateProductIdArr = array_unique($addCateProductIdArr);
             foreach ($addCateProductIdArr as $product_id) {
                 if (!$product_id) {
+                    
                     continue;
                 }
                 $product = $this->_productModel->findOne($product_id);
                 if (!$product[$idKey]) {
+                    
                     continue;
                 }
                 $category = $product->category;
                 $category = ($category && is_array($category)) ? $category : [];
-                //echo $category_id;
                 if (!in_array($category_id, $category)) {
-                    //echo $category_id;
                     $category[] = $category_id;
                     $product->category = $category;
                     $product->save();
                 }
             }
         }
-
         if (is_array($deleteCateProductIdArr) && !empty($deleteCateProductIdArr) && $category_id) {
             $deleteCateProductIdArr = array_unique($deleteCateProductIdArr);
             foreach ($deleteCateProductIdArr as $product_id) {
                 if (!$product_id) {
+                    
                     continue;
                 }
                 $product = $this->_productModel->findOne($product_id);
                 if (!$product[$idKey]) {
+                    
                     continue;
                 }
                 $category = $product->category;
@@ -758,6 +759,7 @@ class ProductMongodb extends Service implements ProductInterface
     {
         $where = $filter['where'];
         if (empty($where)) {
+            
             return [];
         }
         $select = $filter['select'];
@@ -770,6 +772,78 @@ class ProductMongodb extends Service implements ProductInterface
 
         return $query->all();
     }
+    
+    /**
+     * 相同spu下面的所有sku，只显示一个，取score值最高的那个显示
+     *[
+     *	'category_id' 	=> 1,
+     *	'pageNum'		=> 2,
+     *	'numPerPage'	=> 50,
+     *	'orderBy'		=> 'name',
+     *	'where'			=> [
+     *     'and',
+     *		['>','price',11],
+     *		['<','price',22],
+     *	],
+     *	'select'		=> ['xx','yy'],
+     *	'group'			=> '$spu',
+     * ]
+     * 得到分类下的产品，在这里需要注意的是：
+     * 1.同一个spu的产品，有很多sku，但是只显示score最高的产品，这个score可以通过脚本取订单的销量（最近一个月，或者
+     *   最近三个月等等），或者自定义都可以。
+     * 2.结果按照filter里面的orderBy排序
+     * 3.由于使用的是mongodb的aggregate(管道)函数，因此，此函数有一定的限制，就是该函数
+     *   处理后的结果不能大约32MB，因此，如果一个分类下面的产品几十万的时候可能就会出现问题，
+     *   这种情况可以用专业的搜索引擎做聚合工具。
+     *   不过，对于一般的用户来说，这个不会成为瓶颈问题，一般一个分类下的产品不会出现几十万的情况。
+     * 4.最后就得到spu唯一的产品列表（多个spu相同，sku不同的产品，只要score最高的那个）.
+     */
+    public function getProductsGroupBySpu($filter)
+    {
+        $orderBy = $filter['orderBy'];
+        $pageNum = $filter['pageNum'];
+        $numPerPage = $filter['numPerPage'];
+        $select = $filter['select'];
+        $where = $filter['where'];
+        if (empty($where) || !is_array($where)) {
+            
+            return [];
+        }
+        // 1.先按照score排序
+        $subQuery = $this->_productModel->find()
+                    ->select($select)
+                    ->where($where)
+                    ->andWhere(['status' => $this->getEnableStatus()])
+                    ->orderBy(['score' => SORT_DESC])
+                    ;
+        // 总数    
+        $product_total_count = (new Query())
+                    ->from(['product2' => $subQuery])
+                    ->groupBy('spu')
+                    ->count();
+        // 2.上面score排序的结果进行group，这样，score最大值的产品就会作为group后的产品，显示到分类中。
+        $subQuery2 =  (new Query())
+                    ->from(['product2' => $subQuery])
+                    ->groupBy('spu');
+        // 进行查询coll
+        $products = (new Query())  //->select($field)
+			->from(['product' => $subQuery2]) // 在这里使用了子查询
+            ->orderBy($orderBy)
+            ->offset(($pageNum -1) * $numPerPage)
+            ->limit($numPerPage)
+			->createCommand()
+            ->queryAll();
+        foreach ($products as $k => $product) {
+            $products[$k]['name'] = unserialize($product['name']);
+            $products[$k]['image'] = unserialize($product['image']);
+        }
+        
+        return [
+            'coll' => $products,
+            'count' => $product_total_count,
+        ];
+    }
+    
     /**
      * 得到分类页面的产品列表
      * $filter 参数的详细，参看函数 getFrontCategoryProductsGroupBySpu($filter);
@@ -790,6 +864,7 @@ class ProductMongodb extends Service implements ProductInterface
     public function getFrontCategoryProductsAll($filter){
         $where = $filter['where'];
         if (empty($where)) {
+            
             return [];
         }
         if (!isset($where['status'])) {
@@ -804,6 +879,7 @@ class ProductMongodb extends Service implements ProductInterface
             $where_c[] = [$k => $v];
         }
         $filter = [
+            'select' 	=> $select,
             'numPerPage' 	=> $numPerPage,
      		'pageNum'		    => $pageNum,
       		'orderBy'	        => $orderBy,
@@ -813,7 +889,6 @@ class ProductMongodb extends Service implements ProductInterface
         
         return $this->coll($filter);
     }
-    
     
     /**
      * 相同spu下面的所有sku，只显示一个，取score值最高的那个显示
@@ -845,7 +920,6 @@ class ProductMongodb extends Service implements ProductInterface
         if (empty($where)) {
             return [];
         }
-        //var_dump($filter);
         if (!isset($where['status'])) {
             $where['status'] = $this->getEnableStatus();
         }
@@ -863,11 +937,7 @@ class ProductMongodb extends Service implements ProductInterface
             $group[$column] = ['$first' => '$'.$column];
         }
         $group['product_id'] = ['$first' => '$product_id'];
-        
-        //var_dump($group);
-        //exit;
         $langCode = Yii::$service->store->currentLangCode;
-        
         $name_lang  = Yii::$service->fecshoplang->getLangAttrName('name', $langCode);
         $default_name_lang  = Yii::$service->fecshoplang->GetDefaultLangAttrName('name');
         $project['name'] = [
@@ -897,8 +967,6 @@ class ProductMongodb extends Service implements ProductInterface
                 '$limit'    => Yii::$service->product->categoryAggregateMaxCount,
             ],
         ];
-        //var_dump($pipelines);exit;
-        // ['cursor' => ['batchSize' => 2]]
         $product_data = $this->_productModel->getCollection()->aggregate($pipelines);
         $product_total_count = count($product_data);
         $pageOffset = ($pageNum - 1) * $numPerPage;
@@ -919,6 +987,7 @@ class ProductMongodb extends Service implements ProductInterface
     public function getFrontCategoryFilter($filter_attr, $where)
     {
         if (empty($where)) {
+            
             return [];
         }
         if (!isset($where['status'])) {
@@ -1019,7 +1088,6 @@ class ProductMongodb extends Service implements ProductInterface
         }
         $currentDateTime = \fec\helpers\CDate::getCurrentDateTime();
         $primaryVal = isset($one[$this->getPrimaryKey()]) ? $one[$this->getPrimaryKey()] : '';
-        
         // 得到group spu attr
         $attr_group = $one['attr_group'];
         $groupSpuAttrs = Yii::$service->product->getGroupSpuAttr($attr_group);
@@ -1029,7 +1097,6 @@ class ProductMongodb extends Service implements ProductInterface
                 $spuAttrArr[] = $groupSpuOne['name'];
             }
         }
-        
         if ($primaryVal) {
             $model = $this->_productModel->findOne($primaryVal);
             if (!$model) {
@@ -1037,7 +1104,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-
             //验证sku 是否重复
             $product_one = $this->_productModel->find()->asArray()->where([
                 '<>', $this->getPrimaryKey(), (new \MongoDB\BSON\ObjectId($primaryVal)),
@@ -1049,7 +1115,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-            
             // spu 下面的各个sku的spu属性不能相同
             if (!empty($spuAttrArr)) {
                 $product_mode = $this->_productModel->find()->asArray()->where([
@@ -1060,7 +1125,6 @@ class ProductMongodb extends Service implements ProductInterface
                 foreach ($spuAttrArr as $sar) {
                     $product_mode->andWhere([$sar => $one[$sar]]);
                 }
-                
                 $product_one = $product_mode->one();
                 if ($product_one['sku']) {
                     Yii::$service->helper->errors->add('product Spu of the same,  Spu attributes cannot be the same');
@@ -1068,7 +1132,6 @@ class ProductMongodb extends Service implements ProductInterface
                     return false;
                 }
             }
-            
             // 多语言属性，如果您有其他的多语言属性，可以自行二开添加。
             $name =$model['name'];
             $meta_title = $model['meta_title'];
@@ -1109,7 +1172,6 @@ class ProductMongodb extends Service implements ProductInterface
 
                 return false;
             }
-            
             if (!empty($spuAttrArr)) {
                 $product_mode = $this->_productModel->find()->asArray()->where([
                     'spu' => $one['spu'],
@@ -1117,7 +1179,6 @@ class ProductMongodb extends Service implements ProductInterface
                 foreach ($spuAttrArr as $sar) {
                     $product_mode->andWhere([$sar => $one[$sar]]);
                 }
-                
                 $product_one = $product_mode->one();
                 if ($product_one['sku']) {
                     Yii::$service->helper->errors->add('product Spu of the same,  Spu attributes cannot be the same');
@@ -1125,7 +1186,6 @@ class ProductMongodb extends Service implements ProductInterface
                     return false;
                 }
             }
-            
         }
         $model->updated_at = time();
         // 计算出来产品的最终价格。
@@ -1133,22 +1193,7 @@ class ProductMongodb extends Service implements ProductInterface
         $one['score'] = (int) $one['score'];
         unset($one['_id']);
         unset($one['custom_option']);
-        /**
-         * 如果 $one['custom_option'] 不为空，则计算出来库存总数，填写到qty
-         */
-        //if (is_array($one['custom_option']) && !empty($one['custom_option'])) {
-        //    $custom_option_qty = 0;
-        //    foreach ($one['custom_option'] as $co_one) {
-        //        $custom_option_qty += $co_one['qty'];
-        //    }
-        //    $one['qty'] = $custom_option_qty;
-        //}
-        /**
-         * 保存产品
-         */
-        //var_dump($one);exit;
         $saveStatus = Yii::$service->helper->ar->save($model, $one);
-        
         // 自定义url部分
         if ($originUrlKey) {
             $originUrl = $originUrlKey.'?'.$this->getPrimaryKey() .'='. $primaryVal;
@@ -1158,7 +1203,6 @@ class ProductMongodb extends Service implements ProductInterface
             $model->url_key = $urlKey;
             $model->save();
         }
-        
         $product_id = $model->{$this->getPrimaryKey()};
         /**
          * 更新产品库存。

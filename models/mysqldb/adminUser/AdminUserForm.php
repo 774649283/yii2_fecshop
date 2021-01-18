@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2016 FecShop Software LLC
  * @license http://www.fecshop.com/license/
  */
-namespace fecshop\models\mysqldb\AdminUser;
+namespace fecshop\models\mysqldb\adminUser;
 use fecshop\models\mysqldb\AdminUser;
 /**
  * @author Terry Zhao <2358269014@qq.com>
@@ -84,7 +84,7 @@ class AdminUserForm extends AdminUser {
     
     public function validatePasswordFormat($attribute, $params){
         if($this->id){
-            if($this->password && strlen($this->password) <= 6){
+            if($this->password && strlen($this->password) < 6){
                 $this->addError($attribute,"password must >=6");
             }
         }else{

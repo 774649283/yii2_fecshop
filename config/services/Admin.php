@@ -21,12 +21,15 @@ return [
 					'catalog_product_search_manager' 		=> 'Catalog-Product-Search',
 					'catalog_product_favorite_manager' 	=> 'Catalog-Product-Favorite',
                     'catalog_product_upload_manager' 	    => 'Catalog-Product-Upload',
+                    'catalog_product_brand_manager' 	    => 'Catalog-Product-Brand',
+                    'catalog_product_brand_category_manager' 	    => 'Catalog-Product-Brand-Category',
 					'catalog_category_manager' 				=> 'Catalog-Category',
 					'catalog_url_rewrite_manager' 			    => 'Catalog-Url-Rewrite',
                     'sales_cart_manager' 						=> 'Sales-Cart',
                     'sales_order_manager' 						=> 'Sales-Order',
 					'sales_coupon_manager' 					    => 'Sales-Coupon',
                     'customer_account' 							    => 'Customer-Account',
+                    'customer_contacts' 							    => 'Customer-Contacts',
 					'customer_newsletter' 						    => 'Customer-Newsletter',
                     'cms_page' 										    => 'CMS-Page',
 					'cms_static_block' 								=> 'CMS-StaticBlock',
@@ -71,10 +74,12 @@ return [
                     // 一级大类
                     'catalog' => [
                         'label' => 'Category & Prodcut',
+                        'enable' => true,  // 显示和隐藏菜单选项的开关，true代表显示，false代表隐藏
+                        'sort_order' => 1, // 菜单排序，如果不设置 sort_order， 默认值为0，倒序排列，该值越大，越排在前面
                         'child' => [
                             // 二级类
                             'product_manager' => [
-                                'label' => 'Manager Product',
+                                'label' => 'Manage Product',
                                 'child' => [
                                     // 三级类
                                     'product_info_manager' => [
@@ -108,10 +113,20 @@ return [
                                         'label' => 'Product Excel Upload',
                                         'url_key' => '/catalog/productupload/manager',
                                     ],
+                                    
+                                    'product_brand_manager' => [
+                                        'label' => 'Product Brand',
+                                        'url_key' => '/catalog/productbrand/manager',
+                                    ],
+                                    
+                                    'product_randcategory_manager' => [
+                                        'label' => 'Product Brand Category',
+                                        'url_key' => '/catalog/productbrandcategory/manager',
+                                    ],
                                 ]
                             ],
                             'category_manager' => [
-                                'label' => 'Manager Category',
+                                'label' => 'Manage Category',
                                 'child' => [
                                     // 三级类
                                     'category_info_manager' => [
@@ -122,6 +137,11 @@ return [
                                         'label' => 'Category Sort Config',
                                         'url_key' => '/config/categorysort/manager',
                                     ],
+                                    'category_upload_manager' => [
+                                        'label' => 'Category Excel Upload',
+                                        'url_key' => '/catalog/categoryupload/manager',
+                                    ],
+                                    
                                     //'category_info_config' => [
                                     //    'label' => '分类配置',
                                     //    'url_key' => '/catalog/category/index',
@@ -138,7 +158,7 @@ return [
                         'label' => 'Extension Center',
                         'child' => [
                             'extension_manager' => [
-                                'label' => 'Extensions Manager',
+                                'label' => 'Manage Extensions',
                                 'child' => [
                                     'extension_market' => [
                                         'label' => 'Extention Market',
@@ -165,13 +185,13 @@ return [
                         ],
                     ],
                     'sales' => [
-                        'label' => 'Mall Manager',
+                        'label' => 'Mall Manage',
                         'child' => [
                             'order' => [
                                 'label' => 'Order',
                                 'child' => [
                                     'order_manager' => [
-                                        'label' => 'Manager Order',
+                                        'label' => 'Manage Order',
                                         'url_key' => '/sales/orderinfo/manager',
                                     ],
                                     'order_config' => [
@@ -192,8 +212,12 @@ return [
                                 'label' => 'Customer',
                                 'child' => [
                                     'account' => [
-                                        'label' => 'Manager Account',
+                                        'label' => 'Manage Account',
                                         'url_key' => '/customer/account/index',
+                                    ],
+                                    'contacts' => [
+                                        'label' => 'Customer Contacts',
+                                        'url_key' => '/customer/contacts/index',
                                     ],
                                 ],
                             ],
@@ -232,6 +256,11 @@ return [
                                     'email_manager' => [
                                         'label' => 'Email Config',
                                         'url_key' => '/config/email/manager',
+                                    ],
+                                    
+                                    'fa' => [
+                                        'label' => 'FA Config',
+                                        'url_key' => '/config/fa/manager',
                                     ],
                                     
                                 ],
@@ -369,7 +398,7 @@ return [
                         'label' => 'CMS',
                         'child' => [
                             'page' => [
-                                'label' => 'Manager Page',
+                                'label' => 'Manage Page',
                                 'url_key' => '/cms/article/index',
                             ],
                             'staticblock' => [
@@ -389,15 +418,15 @@ return [
                                         'url_key' => '/fecadmin/myaccount/index',
                                     ],
                                     'account_manager' => [
-                                        'label' => 'Manager Account',
+                                        'label' => 'Manage Account',
                                         'url_key' => '/fecadmin/account/manager',
                                     ],
                                     'role_manager' => [
-                                        'label' => 'Manager Role',
+                                        'label' => 'Manage Role',
                                         'url_key' => '/fecadmin/role/manager',
                                     ],
                                     'resource_manager' => [
-                                        'label' => 'Manager Resource',
+                                        'label' => 'Manage Resource',
                                         'url_key' => '/fecadmin/resource/manager',
                                     ],
                                 ],
@@ -415,7 +444,7 @@ return [
                                 'url_key' => '/fecadmin/logtj/index',
                             ],
                             'cache' => [
-                                'label' => 'Manager Cache',
+                                'label' => 'Manage Cache',
                                 'url_key' => '/fecadmin/cache/index',
                             ],
                             'config' => [

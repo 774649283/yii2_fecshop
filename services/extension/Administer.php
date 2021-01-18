@@ -24,7 +24,14 @@ class Administer extends Service
     public $uninstallRemoveFile = true;
     
     public $currentNamespace;
-    
+    /**
+     * 
+     */
+    public function reflushAdminMenuRoleCache()
+    {
+        // 获取RoleResource，参数false代表绕过cache，计算，并重新写入cache
+        return Yii::$service->admin->role->getCurrentRoleResources(false);
+    }
     /**
      * 1.插件的安装
      * @param $extension_name | string ， 插件名称（唯一）
@@ -76,10 +83,13 @@ class Administer extends Service
                 return false;
             }
             $innerTransaction->commit();
+            $this->reflushAdminMenuRoleCache();
+            
             return true;
         } catch (\Exception $e) {
             $innerTransaction->rollBack();
             Yii::$service->helper->errors->add($e->getMessage());
+            
             return false;
         }
         
@@ -122,12 +132,14 @@ class Administer extends Service
                 
                 return false;
             }
-            
             $innerTransaction->commit();
+            $this->reflushAdminMenuRoleCache();
+            
             return true;
         } catch (\Exception $e) {
             $innerTransaction->rollBack();
             Yii::$service->helper->errors->add($e->getMessage());
+            
             return false;
         }
         
@@ -181,11 +193,13 @@ class Administer extends Service
                 return false;
             }
             $innerTransaction->commit();
+            $this->reflushAdminMenuRoleCache();
             
             return true;
         } catch (\Exception $e) {
             $innerTransaction->rollBack();
             Yii::$service->helper->errors->add($e->getMessage());
+            
             return false;
         }
         
@@ -225,14 +239,17 @@ class Administer extends Service
             // 执行应用的upgrade部分功能
             if (!Yii::$service->extension->testUpgradeAddons($extensionConfig['administer']['upgrade'], $modelOne)) {
                 $innerTransaction->rollBack();
+                
                 return false;
             }
             $innerTransaction->commit();
+            $this->reflushAdminMenuRoleCache();
             
             return true;
         } catch (\Exception $e) {
             $innerTransaction->rollBack();
             Yii::$service->helper->errors->add($e->getMessage());
+            
             return false;
         }
         
@@ -283,14 +300,14 @@ class Administer extends Service
             // 执行应用的upgrade部分功能
             if (!Yii::$service->extension->uninstallAddons($extensionConfig['administer']['uninstall'], $modelOne)) {
                 $innerTransaction->rollBack();
+                
                 return false;
             }
             $innerTransaction->commit();
-            
-            return true;
         } catch (\Exception $e) {
             $innerTransaction->rollBack();
             Yii::$service->helper->errors->add($e->getMessage());
+            
             return false;
         }
         
@@ -302,7 +319,8 @@ class Administer extends Service
             // 从配置中获取，是否进行应用文件夹的删除，如果是，则进行文件的删除。
             Yii::$service->helper->deleteDir($installPath);
         }
-        
+        $this->reflushAdminMenuRoleCache();
+            
         return true;
     }
     
@@ -358,7 +376,8 @@ class Administer extends Service
             // 从配置中获取，是否进行应用文件夹的删除，如果是，则进行文件的删除。
             Yii::$service->helper->deleteDir($installPath);
         }
-        
+        $this->reflushAdminMenuRoleCache();
+            
         return true;
     }
     

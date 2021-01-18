@@ -18,21 +18,10 @@ use Yii;
  * @author Terry Zhao <2358269014@qq.com>
  * @since 1.0
  */
-class Manager 
+class Manager extends \yii\base\BaseObject
 {
     
     public $_fileFullDir;
-    /**
-     * init param function ,execute in construct.
-     */
-    public function init()
-    {
-        /*
-         * service component, data provider
-         */
-        //$this->_service = Yii::$service->product->favorite;
-        parent::init();
-    }
 
     public function getLastData()
     {

@@ -89,6 +89,7 @@ class QuoteItem extends Service
             $productValidate = Yii::$service->cart->info->checkProductBeforeAdd($checkItem, $product);
             
             if (!$productValidate) {
+                
                 return false;
             }
             $item_one->active = $this->itemDefaultActiveStatus;
@@ -101,6 +102,7 @@ class QuoteItem extends Service
             $checkItem = $item;
             $productValidate = Yii::$service->cart->info->checkProductBeforeAdd($checkItem, $product);
             if (!$productValidate) {
+                
                 return false;
             }
             $item_one = new $this->_itemModelName;
@@ -243,7 +245,14 @@ class QuoteItem extends Service
 
         return $item_qty;
     }
-
+    /**
+     * 得到购物车产品的排序数组
+     */
+    public function getCartProductOrderBy()
+    {
+        
+        return ['active' => SORT_ASC, 'updated_at' => SORT_DESC];
+    }
     /**
      * @param $activeProduct | boolean , 是否只要active的产品
      * @return array ， foramt：
@@ -270,12 +279,13 @@ class QuoteItem extends Service
             if (!isset($this->_cart_product_info[$cart_id])) {
                 $data = $this->_itemModel->find()->where([
                     'cart_id' => $cart_id,
-                ])->orderBy( ['active' => SORT_ASC, 'updated_at' => SORT_DESC])  // 加入按照active  updated_at 进行排序
+                ])->orderBy( $this->getCartProductOrderBy())  // 加入按照active  updated_at 进行排序
                 ->all();
                 if (is_array($data) && !empty($data)) {
                     foreach ($data as $one) {
                         $active             = $one['active'];
                         if ($activeProduct && ($active != $this->activeStatus)) {
+                            
                             continue;
                         }
                         $product_id     = $one['product_id'];
@@ -313,6 +323,7 @@ class QuoteItem extends Service
                                 'sku'               => $product_one['sku'],
                                 'name'              => Yii::$service->store->getStoreAttrVal($product_one['name'], 'name'),
                                 'qty'               => $qty,
+                                'brand_id'               => $product_one['brand_id'],
                                 'custom_option_sku' => $custom_option_sku,
                                 'product_price'     => $product_price,
                                 'product_row_price' => $product_row_price,
@@ -342,7 +353,6 @@ class QuoteItem extends Service
                         'product_weight'        => $product_weight,
                         'product_volume_weight' => $product_volume_weight,
                         'product_volume'        => $product_volume,
-                        
                     ];
                 }
             }
@@ -394,6 +404,7 @@ class QuoteItem extends Service
                 }
             }
         }
+        
         return $custom_option_info_arr;
     }
 
@@ -423,6 +434,7 @@ class QuoteItem extends Service
                 $productValidate = Yii::$service->cart->info->checkProductBeforeAdd($checkItem, $product);
             
                 if (!$productValidate) {
+                    
                     return false;
                 }
                 $changeQty = Yii::$service->cart->getCartQty($product['package_number'], 1);
@@ -439,6 +451,7 @@ class QuoteItem extends Service
                 ];
                 // 购物车数据加1
                 $this->sendTraceAddToCartInfoByApi($item);
+                
                 return true;
             }
         }
@@ -567,11 +580,9 @@ class QuoteItem extends Service
             if ($updateCount > 0) {
                 Yii::$service->cart->quote->computeCartInfo();
             }
-            
-            return true;
         }
 
-        return false;
+        return true;
     }
     
     /**
@@ -613,7 +624,6 @@ class QuoteItem extends Service
         if ($cart_id) {
             $items = $this->_itemModel->deleteAll([
                 'cart_id' => $cart_id,
-                //'item_id' => $item_id,
             ]);
             // 重新计算购物车的数量
             Yii::$service->cart->quote->computeCartInfo(0);
@@ -635,8 +645,7 @@ class QuoteItem extends Service
                 ['cart_id' => $new_cart_id],  // $attributes
                 ['cart_id' => $cart_id]       // $condition
             );
-            // 重新计算购物车的数量
-            //Yii::$service->cart->quote->computeCartInfo();
+            
             return true;
         }
 
